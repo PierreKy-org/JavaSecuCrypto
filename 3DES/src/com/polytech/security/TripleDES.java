@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.nio.charset.StandardCharsets;
+import java.security.Key;
 import java.security.Provider;
 import java.security.Security;
 import java.util.Vector;
@@ -29,7 +30,7 @@ public class TripleDES {
 				if (argv[0].compareTo("-ECB") == 0) {
 					// ECB mode
 					// encrypt ECB mode
-					Vector Parameters = the3DES.encryptECB(
+					Vector<SecretKey> Parameters = the3DES.encryptECB(
 							new FileInputStream(new File(argv[1])), // clear text file
 							new FileOutputStream(new File(argv[2])), // file encrypted
 							"DES", // KeyGeneratorName
@@ -89,7 +90,6 @@ public class TripleDES {
 			// FOR ENCRYPTION
 			// WITH THE FIRST GENERATED DES KEY
 			Cipher encryption1 = Cipher.getInstance(CipherInstanceName);
-			encryption1.init(Cipher.ENCRYPT_MODE, key1);
 			// CREATE A DES CIPHER OBJECT
 			// WITH CipherInstanceName
 			// FOR DECRYPTION
@@ -111,9 +111,7 @@ public class TripleDES {
 			decryption.init(Cipher.DECRYPT_MODE, key2);
 			encryption2.init(Cipher.ENCRYPT_MODE, key3);
 			// FIleinputstream to string
-			String secretMessage = new String(in.readAllBytes());
-
-			byte[] secretMessagesBytes = secretMessage.getBytes(StandardCharsets.UTF_8);
+			byte[] secretMessagesBytes = in.readAllBytes();
 
 			byte[] encryptedMessageBytes = encryption1.doFinal(secretMessagesBytes);
 			encryptedMessageBytes = decryption.doFinal(encryptedMessageBytes);
@@ -148,25 +146,39 @@ public class TripleDES {
 			// WITH CipherInstanceName
 			// FOR DECRYPTION
 			// WITH THE THIRD GENERATED DES KEY
+			Cipher decryption1 = Cipher.getInstance(CipherInstanceName);
 
 			// CREATE A DES CIPHER OBJECT
 			// WITH CipherInstanceName
 			// FOR ENCRYPTION
 			// WITH THE SECOND GENERATED DES KEY
+			Cipher encryption = Cipher.getInstance(CipherInstanceName);
 
 			// CREATE A DES CIPHER OBJECT FOR ENCRYPTION
 			// WITH CipherInstanceName
 			// FOR DECRYPTION
 			// WITH THE FIRST GENERATED DES KEY
+			Cipher decryption2 = Cipher.getInstance(CipherInstanceName);
+
+			decryption1.init(Cipher.DECRYPT_MODE, (SecretKey) Parameters.get(2));
+			encryption.init(Cipher.ENCRYPT_MODE, (SecretKey) Parameters.get(1));
+			decryption2.init(Cipher.DECRYPT_MODE, (SecretKey) Parameters.get(0));
 
 			// GET THE ENCRYPTED DATA FROM IN
+			byte[] encryptedMessageBytes = in.readAllBytes();
 
 			// DECIPHERING
+			byte[] decryptedMessageBytes = decryption1.doFinal(encryptedMessageBytes);
+			decryptedMessageBytes = encryption.doFinal(decryptedMessageBytes);
+			decryptedMessageBytes = decryption2.doFinal(decryptedMessageBytes);
 			// DECIPHER WITH THE THIRD KEY
 			// CIPHER WITH THE SECOND KEY
 			// DECIPHER WITH THE FIRST KEY
+			//decryptedMessagesBytes to string
+			String decode = new String(decryptedMessageBytes);
 
 			// WRITE THE DECRYPTED DATA IN OUT
+			out.write(decode.getBytes());
 
 		} catch (Exception e) {
 			e.printStackTrace();
