@@ -2,4 +2,5 @@
 .idea
 *.jar
 *.log
+*.txt
 *.class 
