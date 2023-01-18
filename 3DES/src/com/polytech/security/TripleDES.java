@@ -240,15 +240,20 @@ public class TripleDES {
 
 
 			// WRITE THE ENCRYPTED DATA IN OUT
-			String secretMessage = new String(in.readAllBytes());
-			byte[] secretMessagesBytes = secretMessage.getBytes(StandardCharsets.UTF_8);
-			byte[] encryptedMessageBytes = enc1.doFinal(secretMessagesBytes);
+			byte[] secretMessageBytes = in.readAllBytes();
+			byte[] encryptedMessageBytes = enc1.doFinal(secretMessageBytes);
 			encryptedMessageBytes = dec.doFinal(encryptedMessageBytes);
 			encryptedMessageBytes = enc2.doFinal(encryptedMessageBytes);
 			out.write(encryptedMessageBytes);
 
 			// return the DES keys list generated
-			return null;
+			// return the DES keys list generated
+			Vector<Object> parameters = new Vector();
+			parameters.add(key1);
+			parameters.add(key2);
+			parameters.add(key3);
+			parameters.add(ivSpec);
+			return parameters;
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -269,30 +274,44 @@ public class TripleDES {
 			// WITH CipherInstanceName
 			// FOR DECRYPTION
 			// WITH THE THIRD GENERATED DES KEY
+			Cipher decryption1 = Cipher.getInstance(CipherInstanceName);
 
 			// CREATE A DES CIPHER OBJECT
 			// WITH CipherInstanceName
 			// FOR ENCRYPTION
 			// WITH THE SECOND GENERATED DES KEY
+			Cipher encryption = Cipher.getInstance(CipherInstanceName);
 
 			// CREATE A DES CIPHER OBJECT FOR ENCRYPTION
 			// WITH CipherInstanceName
 			// FOR DECRYPTION
 			// WITH THE FIRST GENERATED DES KEY
+			Cipher decryption2 = Cipher.getInstance(CipherInstanceName);
+			IvParameterSpec ivSpec = (IvParameterSpec) Parameters.get(3);
 
-			// GET ENCRYPTED DATA FROM IN
+			decryption1.init(Cipher.DECRYPT_MODE, (SecretKey) Parameters.get(2),ivSpec);
+			encryption.init(Cipher.ENCRYPT_MODE, (SecretKey) Parameters.get(1), ivSpec);
+			decryption2.init(Cipher.DECRYPT_MODE, (SecretKey) Parameters.get(0),ivSpec);
+
+			// GET THE ENCRYPTED DATA FROM IN
+			byte[] encryptedMessageBytes = in.readAllBytes();
 
 			// DECIPHERING
+			byte[] decryptedMessageBytes = decryption1.doFinal(encryptedMessageBytes);
+			decryptedMessageBytes = encryption.doFinal(decryptedMessageBytes);
+			decryptedMessageBytes = decryption2.doFinal(decryptedMessageBytes);
 			// DECIPHER WITH THE THIRD KEY
 			// CIPHER WITH THE SECOND KEY
 			// DECIPHER WITH THE FIRST KEY
+			//decryptedMessagesBytes to string
+			String decode = new String(decryptedMessageBytes);
 
 			// WRITE THE DECRYPTED DATA IN OUT
+			out.write(decode.getBytes());
 
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
 	}
 
 }
