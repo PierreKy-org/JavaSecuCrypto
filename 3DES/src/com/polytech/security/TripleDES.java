@@ -5,12 +5,14 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.Provider;
+import java.security.SecureRandom;
 import java.security.Security;
 import java.util.Vector;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
 
 public class TripleDES {
 
@@ -89,7 +91,6 @@ public class TripleDES {
 			// FOR ENCRYPTION
 			// WITH THE FIRST GENERATED DES KEY
 			Cipher encryption1 = Cipher.getInstance(CipherInstanceName);
-			encryption1.init(Cipher.ENCRYPT_MODE, key1);
 			// CREATE A DES CIPHER OBJECT
 			// WITH CipherInstanceName
 			// FOR DECRYPTION
@@ -184,9 +185,18 @@ public class TripleDES {
 		try {
 
 			// GENERATE 3 DES KEYS
+			KeyGenerator kg = KeyGenerator.getInstance(KeyGeneratorInstanceName);
+			SecretKey key1 = kg.generateKey();
+			SecretKey key2 = kg.generateKey();
+			SecretKey key3 = kg.generateKey();
 			// GENERATE THE IV
+			SecureRandom random = SecureRandom.getInstanceStrong();
+			byte[] iv = new byte[8];
+			random.nextBytes(iv);
+			IvParameterSpec ivSpec = new IvParameterSpec(iv);
 
 			// CREATE A DES CIPHER OBJECT
+			Cipher enc1 = Cipher.getInstance(CipherInstanceName);
 			// WITH CipherInstanceName
 			// FOR ENCRYPTION
 			// WITH THE FIRST GENERATED DES KEY
@@ -195,20 +205,34 @@ public class TripleDES {
 			// WITH CipherInstanceName
 			// FOR DECRYPTION
 			// WITH THE SECOND GENERATED DES KEY
+			Cipher dec = Cipher.getInstance(CipherInstanceName);
 
 			// CREATE A DES CIPHER OBJECT
 			// WITH CipherInstanceName
 			// FOR ENCRYPTION
 			// WITH THE THIRD GENERATED DES KEY
 
+			Cipher enc2 = Cipher.getInstance(CipherInstanceName);
 			// GET THE DATA TO BE ENCRYPTED FROM IN
 
 			// CIPHERING
+
 			// CIPHER WITH THE FIRST KEY
 			// DECIPHER WITH THE SECOND KEY
 			// CIPHER WITH THE THIRD KEY
+			enc1.init(Cipher.ENCRYPT_MODE , key1, ivSpec);
+			dec.init(Cipher.DECRYPT_MODE, key2, ivSpec);
+			enc2.init(Cipher.ENCRYPT_MODE, key3, ivSpec);
+
+
 
 			// WRITE THE ENCRYPTED DATA IN OUT
+			String secretMessage = new String(in.readAllBytes());
+			byte[] secretMessagesBytes = secretMessage.getBytes(StandardCharsets.UTF_8);
+			byte[] encryptedMessageBytes = enc1.doFinal(secretMessagesBytes);
+			encryptedMessageBytes = dec.doFinal(encryptedMessageBytes);
+			encryptedMessageBytes = enc2.doFinal(encryptedMessageBytes);
+			out.write(encryptedMessageBytes);
 
 			// return the DES keys list generated
 			return null;
